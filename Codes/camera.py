@@ -143,11 +143,13 @@ def robot_center_is(arucos):
         for i in range(len(arucos)):
             if arucos[i][2] == 95:
                 return (arucos[i][0], arucos[i][1])
+            else:
+                return (0, 0)
     else:
         return (0, 0)
     
 def center_in_grid(arucos, pos, grid_resolution):
-    if len(arucos) !=0 and (pos is not None):
+    if len(arucos) !=0:
         x = int(pos[0]/grid_resolution)
         y = int(pos[1]/grid_resolution)
         return (x, y)
