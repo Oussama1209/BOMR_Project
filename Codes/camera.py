@@ -146,10 +146,34 @@ def robot_center_is(arucos):
     else:
         return (0, 0)
     
-def center_in_grid(pos, grid_resolution):
-    x = int(pos[0]/grid_resolution)
-    y = int(pos[1]/grid_resolution)
-    return (x, y)
+def center_in_grid(arucos, pos, grid_resolution):
+    if len(arucos) !=0 and (pos is not None):
+        x = int(pos[0]/grid_resolution)
+        y = int(pos[1]/grid_resolution)
+        return (x, y)
+    else:
+        return (0, 0)
+
+def get_goal_pos(arucos, grid_resolution):
+    if len(arucos) !=0:
+        for i in range(len(arucos)):
+            if arucos[i][2] == 99:
+                x = int(arucos[i][0]/grid_resolution)
+                y = int(arucos[i][1]/grid_resolution)
+                return (x, y)
+            else:
+                return (0, 0)
+    else:
+        return (0, 0)
+    
+def check_if_goal_reached(robot_pos, goal_pos):
+    if len(arucos) !=0:
+        if (robot_pos == goal_pos) and (robot_pos != (0, 0)) and (goal_pos != (0, 0)):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 def get_angle_of_robot(arucos):
     if len(arucos) !=0:
@@ -159,6 +183,8 @@ def get_angle_of_robot(arucos):
                 x2, y2 = arucos[i][3][1][0], arucos[i][3][1][1]
                 angle = math.atan2(-(y2 - y1), x2 - x1)
                 return angle
+            else:
+                return 0
     else:
         return 0
 
@@ -194,38 +220,22 @@ def activate_camera():
     cv2.destroyAllWindows()
     cap.release()
 
-def show_robot():
+def get_arucos(frame):
+    detector = set_aruco()
+    markerCorners, markerIds, rejectedCandidates = detector.detectMarkers(frame)
+    frame, arucos = get_info_arucos(markerCorners, markerIds, frame)
+    return frame, arucos
 
-    cap = cv2.VideoCapture(0)
+def show_robot(frame, grid_resolution):
 
-    while cap.isOpened():
+    frame, arucos = get_arucos(frame)
+    real_center = robot_center_is(arucos)
+    robot_pos = center_in_grid(arucos, real_center, grid_resolution)
+    angle = get_angle_of_robot(arucos)
+    frame = draw_arrow(frame, arucos, angle)
 
-        frame = cap.read()[1]
+    return frame, arucos, robot_pos, angle
 
-        detector = set_aruco()
-    
-        markerCorners, markerIds, rejectedCandidates = detector.detectMarkers(frame)
-    
-        frame, arucos = get_info_arucos(markerCorners, markerIds, frame)
-
-        real_center = robot_center_is(arucos)
-
-        robot_pos = center_in_grid(real_center, grid_resolution=100)
-
-        angle = get_angle_of_robot(arucos)
-
-        frame = draw_arrow(frame, arucos, angle)
-
-        cv2.imshow("Videa Stream", frame)
-    
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            break
-
-    cv2.destroyAllWindows()
-    cap.release()
-
-    return robot_pos, angle
 
 def apply_grid_to_camera(grid_resolution):
 
@@ -250,5 +260,40 @@ def apply_grid_to_camera(grid_resolution):
     cap.release()
 
     return map
+
+cap = cv2.VideoCapture(0)
+
+grid_resolution = 25
+
+last_known_goal_pos = (0, 0)
+
+while cap.isOpened():
+
+    robot_pos = (0, 0)
+
+    frame = cap.read()[1]
+
+    frame, arucos, robot_pos, angle = show_robot(frame, grid_resolution)
+    goal_pos = get_goal_pos(arucos, grid_resolution)
+
+    if goal_pos != (0, 0):
+        last_known_goal_pos = goal_pos
+
+    if check_if_goal_reached(robot_pos, last_known_goal_pos):
+        print('Goal reached')
+        break
+
+    cv2.imshow("Videa Stream", frame)
+
+    print(f'Robot position: {robot_pos} and angle: {angle}')
+    print(f'Goal position: {goal_pos}')
+    
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("q"):
+        break
+
+cv2.destroyAllWindows()
+cap.release()
+
 
 
