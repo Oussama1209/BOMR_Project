@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import math 
-import numpy as np
 import time
 
 
@@ -168,7 +167,7 @@ def get_goal_pos(arucos, grid_resolution):
     else:
         return (0, 0)
     
-def check_if_goal_reached(robot_pos, goal_pos):
+def check_if_goal_reached(arucos, robot_pos, goal_pos):
     if len(arucos) !=0:
         if (robot_pos == goal_pos) and (robot_pos != (0, 0)) and (goal_pos != (0, 0)):
             return True
@@ -185,8 +184,6 @@ def get_angle_of_robot(arucos):
                 x2, y2 = arucos[i][3][1][0], arucos[i][3][1][1]
                 angle = math.atan2(-(y2 - y1), x2 - x1)
                 return angle
-            else:
-                return 0
     else:
         return 0
 
@@ -263,6 +260,7 @@ def apply_grid_to_camera(grid_resolution):
 
     return map
 
+'''
 cap = cv2.VideoCapture(0)
 
 grid_resolution = 25
@@ -281,7 +279,7 @@ while cap.isOpened():
     if goal_pos != (0, 0):
         last_known_goal_pos = goal_pos
 
-    if check_if_goal_reached(robot_pos, last_known_goal_pos):
+    if check_if_goal_reached(arucos, robot_pos, last_known_goal_pos):
         print('Goal reached')
         break
 
@@ -296,6 +294,5 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 cap.release()
-
-
+'''
 
